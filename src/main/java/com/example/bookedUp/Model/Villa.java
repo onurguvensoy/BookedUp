@@ -1,4 +1,4 @@
 package com.example.bookedUp.Model;
 
-public class Owner {
+public class Villa extends Rental {
 }
