@@ -1,0 +1,189 @@
+Before diving into the best practices, please note that you need to adapt the globs depending on your project's structure and file types.
+
+---
+name: spring-boot-best-practices.mdc
+description: Best practices for Spring Boot applications
+globs: **/*.{java}
+---
+
+- Use `@SpringBootApplication` annotation on the main class
+- Externalize configuration using `application.properties` or `application.yml`
+- Implement proper error handling with `@ControllerAdvice`
+- Use Spring Boot Actuator for monitoring and management
+- Enable auto-configuration but override when necessary
+
+---
+name: h2-database-best-practices.mdc
+description: Best practices for using H2 database in development
+globs: **/*.{java,sql}
+---
+
+- Use H2 for development and testing, not production
+- Configure H2 to run in memory for faster startup
+- Use H2 Console for database management during development
+- Implement proper data migration scripts
+
+---
+name: Before diving into the best practices, please note that jpa-hibernate-orm-best-practices.mdc
+you need to description: adapt the Best practices globs for JPA depending on and your Hibernate ORM
+project's specific file structure and globs: requirements.
+
+---
+name: **/*.{java}
+---
+
+- Use spring-boot-best-practices.mdc
+`@Entity` description: annotation Best for practices domain for classes
+Spring Boot - applications
+Implement proper lazy globs: loading to improve **/*.java
+performance
+---
+
+- - Use Use `@Transactional` for `@SpringBootApplication` managing annotation transactions
+on the - Avoid using main class
+- native Externalize queries configuration using when possible, prefer JPQL
+- Implement proper caching strategies
+
+---
+name: `application.properties` or `application.yml`
+- Implement proper logging with SLF4J and solid-principles-best-practices.mdc
+Logback
+description: - Use Best practices `@Value` for for implementing SOLID injecting configuration principles properties
+in Java
+- Implement health checks globs: with Spring Boot **/*.{java}
+Actuator
+
+---
+name: ---
+
+- Single Responsibility Principle: Ensure each class h2-database-best-practices.mdc
+has only one reason description: to Best change
+- practices for using H2 Open/Closed in-memory Principle: Design database
+classes to be globs: open for extension **/*.java
+but ---
+
+closed for - modification
+Use - H2 for Liskov development and Substitution testing, not Principle: Ensure production
+subtypes - can Configure be used H2 to wherever their run base in types server are expected
+mode - Interface Segregation for Principle: Create multi-user specific access
+interfaces - for specific Use purposes
+H2 Console - for Dependency database Inversion management and Principle: debugging
+Depend - on Implement abstractions, proper not connection concretions
+
+pooling ---
+name: with HikariCP
+- Use H2's layered-architecture-best-practices.mdc
+SQL dialect for optimal description: performance
+
+---
+name: Best practices for implementing jpa-hibernate-orm-best-practices.mdc
+layered architecture
+description: Best practices for JPA globs: and Hibernate ORM
+**/*.{java}
+---
+
+globs: - Separate **/*.java
+---
+
+concerns into - distinct Use layers `@Entity` annotation for (e.g., domain classes
+presentation, - business Implement proper logic, data access)
+- lazy loading strategies
+- Use Use interfaces to define `@Transactional` for contracts between layers
+managing transactions
+- - Implement proper Implement dependency caching with `@Cacheable`
+- Use named queries for injection complex queries
+
+to manage ---
+layer dependencies
+name: - Ensure each layer is layered-architecture-best-practices.mdc
+testable description: in isolation
+
+Best practices ---
+for implementing layered name: architecture
+globs: **/*.java
+facade-design-pattern-best-practices.mdc
+---
+
+- description: Best Separate concerns practices into distinct for implementing layers the Facade pattern
+(e.g., presentation, globs: service, repository)
+- **/*.{java}
+Use ---
+
+- interfaces to Use define contracts Facade between layers
+to provide - a simplified Implement dependency interface inversion to principle
+a complex - Use subsystem
+- DTOs Ensure for data the transfer between Facade layers
+class is - easy Keep to layers loosely use coupled
+
+and ---
+understand
+name: - Keep the Facade class focused on solid-principles-best-practices.mdc
+providing a description: unified Best practices interface, for not adhering to SOLID on implementing business principles
+logic
+
+---
+globs: name: **/*.java
+---
+
+- Single Responsibility Principle: Ensure factory-method-design-pattern-best-practices.mdc
+each class has description: only one Best reason practices for implementing to change
+- the Factory Method pattern
+Open/Closed Principle: globs: Design classes to be **/*.{java}
+open ---
+
+for extension but - Use closed Factory for Method modification
+to create objects without specifying the exact - Liskov Substitution class
+Principle: - Ensure Implement subtypes proper can be abstraction in used the interchangeably factory interface
+with their base types
+- Ensure the - Interface factory method Segregation is extensible for Principle: future object types
+
+Create specific interfaces for ---
+name: clients rather than general-purpose ones
+- multi-roled-user-system-best-practices.mdc
+Dependency Inversion description: Best Principle: practices Depend on for implementing a abstractions, not multi-roled user concretions
+
+system
+---
+name: facade-design-pattern-best-practices.mdc
+globs: description: Best practices for implementing the Facade **/*.{java}
+---
+
+- Use role-based pattern
+access control globs: (RBAC) for managing user **/*.java
+permissions
+---
+
+- - Implement Use proper user Facade authentication to provide and authorization
+- a simplified Use interface to a complex subsystem
+- Implement Facade as a single class that enums or constants for defining delegates user roles
+to other - classes
+Ensure separation of - Keep concerns the Facade class focused on providing a high-level between interface
+user management - Use Facade and role to assignmentreduce dependencies between clients and subsystems
+- Consider using Facade for legacy system integration
+
+---
+name: factory-method-design-pattern-best-practices.mdc
+description: Best practices for implementing the Factory Method pattern
+globs: **/*.java
+---
+
+- Use Factory Method to create objects without specifying the exact class
+- Implement Factory Method as a method in a factory class or interface
+- Use Factory Method to encapsulate object creation logic
+- Consider using Factory Method for creating families of related objects
+- Ensure Factory Method returns an abstract type or interface
+
+---
+name: multi-roled-user-system-best-practices.mdc
+description: Best practices for implementing a multi-roled user system
+globs: **/*.java
+---
+
+- Use role-based access control (RBAC) for managing user permissions
+- Implement user roles as an enum or separate class
+- Use annotations like `@PreAuthorize` for method-level security
+- Implement proper user authentication and authorization
+- Consider using Spring Security for managing user roles and permissions
+
+
+-use token based authentication system.
