@@ -4,6 +4,7 @@ import com.example.bookedUp.model.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -13,5 +14,5 @@ public class UserCreateRequest {
     private String password;
     private String firstName;
     private String lastName;
-    private Role role;
+    private Set<Role.RoleType> roles;
 } 

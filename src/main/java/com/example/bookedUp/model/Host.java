@@ -5,8 +5,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import java.util.ArrayList;
+import lombok.Builder;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Data
@@ -17,7 +20,12 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "id")
 public class Host extends User {
     @Column(name = "phone_number")
-    private String phoneNumber;
+    @Builder.Default
+    private String phoneNumber = "";
+
+    @Column(name = "bank_account")
+    @Builder.Default
+    private String bankAccount = "";
 
     @Column(name = "address")
     private String address;
@@ -26,14 +34,17 @@ public class Host extends User {
     private boolean available = true;
 
     @OneToMany(mappedBy = "host", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reservation> reservations = new ArrayList<>();
+    @Builder.Default
+    private List<Property> properties = new ArrayList<>();
 
     @PrePersist
     @Override
     protected void onCreate() {
         super.onCreate();
-        if (getRole() == null) {
-            setRole(Role.HOST);
+        if (getRoles() == null || getRoles().isEmpty()) {
+            Set<Role> roles = new HashSet<>();
+            roles.add(new Role(Role.RoleType.HOST));
+            setRoles(roles);
         }
     }
 } 

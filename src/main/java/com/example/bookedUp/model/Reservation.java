@@ -4,41 +4,44 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import java.time.LocalDateTime;
+import lombok.experimental.SuperBuilder;
+import java.time.LocalDate;
+import java.math.BigDecimal;
 
-@Entity
-@Table(name = "reservations")
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "reservations")
 public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "property_id", nullable = false)
+    private Property property;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guest_id", nullable = false)
-    private User guest;
+    private Guest guest;
 
-    @ManyToOne
-    @JoinColumn(name = "host_id", nullable = false)
-    private User host;
+    @Column(name = "check_in_date", nullable = false)
+    private LocalDate checkInDate;
 
-    @Column(nullable = false)
-    private LocalDateTime checkInDate;
+    @Column(name = "check_out_date", nullable = false)
+    private LocalDate checkOutDate;
 
-    @Column(nullable = false)
-    private LocalDateTime checkOutDate;
+    @Column(name = "number_of_guests", nullable = false)
+    private int numberOfGuests;
 
-    @Column(nullable = false)
-    private double totalPrice;
+    @Column(name = "total_price", nullable = false)
+    private BigDecimal totalPrice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ReservationStatus status = ReservationStatus.PENDING;
+    @Column(name = "status", nullable = false)
+    private String status;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "special_requests")
+    private String specialRequests;
 } 

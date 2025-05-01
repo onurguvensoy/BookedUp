@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -21,8 +23,10 @@ public class Admin extends User {
     @Override
     protected void onCreate() {
         super.onCreate();
-        if (getRole() == null) {
-            setRole(Role.ADMIN);
+        if (getRoles() == null || getRoles().isEmpty()) {
+            Set<Role> roles = new HashSet<>();
+            roles.add(new Role(Role.RoleType.ADMIN));
+            setRoles(roles);
         }
     }
 } 

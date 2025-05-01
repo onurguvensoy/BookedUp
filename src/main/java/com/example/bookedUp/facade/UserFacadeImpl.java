@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Optional;
 
 @Service
@@ -22,11 +23,11 @@ public class UserFacadeImpl implements UserFacade {
 
     @Override
     @Transactional
-    public User createUser(String email, String password, String firstName, String lastName, Role role) {
+    public User createUser(String email, String password, String firstName, String lastName, Set<Role> roles) {
         if (existsByEmail(email)) {
             throw new IllegalArgumentException("Email already exists");
         }
-        User user = userFactory.createUser(email, password, firstName, lastName, role);
+        User user = userFactory.createUser(email, password, firstName, lastName, roles);
         return userRepository.save(user);
     }
 
@@ -41,8 +42,8 @@ public class UserFacadeImpl implements UserFacade {
     }
 
     @Override
-    public List<User> getUsersByRole(Role role) {
-        return userRepository.findByRole(role);
+    public List<User> getUsersByRole(Role.RoleType roleType) {
+        return userRepository.findByRoles_Name(roleType);
     }
 
     @Override
@@ -53,7 +54,7 @@ public class UserFacadeImpl implements UserFacade {
                     user.setEmail(userDetails.getEmail());
                     user.setFirstName(userDetails.getFirstName());
                     user.setLastName(userDetails.getLastName());
-                    user.setRole(userDetails.getRole());
+                    user.setRoles(userDetails.getRoles());
                     return userRepository.save(user);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));

@@ -1,70 +1,97 @@
 package com.example.bookedUp.controller;
 
-import com.example.bookedUp.dto.ReservationDto;
+import com.example.bookedUp.dto.ReservationDTO;
+import com.example.bookedUp.model.Reservation;
+import com.example.bookedUp.model.Property;
+import com.example.bookedUp.model.Guest;
 import com.example.bookedUp.service.ReservationService;
+import com.example.bookedUp.mapper.ReservationMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.Optional;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/reservations")
 public class ReservationController {
     private final ReservationService reservationService;
+    private final ReservationMapper reservationMapper;
 
-    public ReservationController(ReservationService reservationService) {
+    public ReservationController(ReservationService reservationService, ReservationMapper reservationMapper) {
         this.reservationService = reservationService;
+        this.reservationMapper = reservationMapper;
     }
 
     @PostMapping
-    public ResponseEntity<ReservationDto> createReservation(@RequestBody ReservationDto reservationDto) {
-        ReservationDto createdReservation = reservationService.createReservation(reservationDto);
-        return ResponseEntity.ok(createdReservation);
+    public ResponseEntity<ReservationDTO> createReservation(@RequestBody ReservationDTO reservationDTO) {
+        Reservation reservation = reservationMapper.toEntity(reservationDTO);
+        Reservation createdReservation = reservationService.createReservation(reservation);
+        ReservationDTO responseDTO = reservationMapper.toDTO(createdReservation);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ReservationDto> getReservationById(@PathVariable Long id) {
-        ReservationDto reservation = reservationService.getReservationById(id);
-        return ResponseEntity.ok(reservation);
+    public ResponseEntity<ReservationDTO> getReservationById(@PathVariable Long id) {
+        Optional<Reservation> reservation = reservationService.getReservationById(id);
+        return reservation.map(r -> ResponseEntity.ok(reservationMapper.toDTO(r)))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping
-    public ResponseEntity<List<ReservationDto>> getAllReservations() {
-        List<ReservationDto> reservations = reservationService.getAllReservations();
-        return ResponseEntity.ok(reservations);
+    public ResponseEntity<List<ReservationDTO>> getAllReservations() {
+        List<Reservation> reservations = reservationService.getAllReservations();
+        List<ReservationDTO> dtos = reservations.stream()
+                .map(reservationMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/property/{propertyId}")
+    public ResponseEntity<List<ReservationDTO>> getReservationsByProperty(@PathVariable Long propertyId) {
+        Property property = new Property();
+        property.setId(propertyId);
+        List<Reservation> reservations = reservationService.getReservationsByProperty(property);
+        List<ReservationDTO> dtos = reservations.stream()
+                .map(reservationMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/guest/{guestId}")
-    public ResponseEntity<List<ReservationDto>> getReservationsByGuestId(@PathVariable Long guestId) {
-        List<ReservationDto> reservations = reservationService.getReservationsByGuestId(guestId);
-        return ResponseEntity.ok(reservations);
+    public ResponseEntity<List<ReservationDTO>> getReservationsByGuest(@PathVariable Long guestId) {
+        Guest guest = new Guest();
+        guest.setId(guestId);
+        List<Reservation> reservations = reservationService.getReservationsByGuest(guest);
+        List<ReservationDTO> dtos = reservations.stream()
+                .map(reservationMapper::toDTO)
+                .toList();
+        return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("/host/{hostId}")
-    public ResponseEntity<List<ReservationDto>> getReservationsByHostId(@PathVariable Long hostId) {
-        List<ReservationDto> reservations = reservationService.getReservationsByHostId(hostId);
-        return ResponseEntity.ok(reservations);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ReservationDto> updateReservation(
+    @PutMapping("/{id}/status")
+    public ResponseEntity<ReservationDTO> updateReservationStatus(
             @PathVariable Long id,
-            @RequestBody ReservationDto reservationDto) {
-        ReservationDto updatedReservation = reservationService.updateReservation(id, reservationDto);
-        return ResponseEntity.ok(updatedReservation);
+            @RequestParam String status) {
+        Reservation updatedReservation = reservationService.updateReservationStatus(id, status);
+        ReservationDTO responseDTO = reservationMapper.toDTO(updatedReservation);
+        return ResponseEntity.ok(responseDTO);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
-        reservationService.deleteReservation(id);
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
+        reservationService.cancelReservation(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<ReservationDto> updateReservationStatus(
-            @PathVariable Long id,
-            @RequestParam String status) {
-        ReservationDto updatedReservation = reservationService.updateReservationStatus(id, status);
-        return ResponseEntity.ok(updatedReservation);
+    @GetMapping("/property/{propertyId}/availability")
+    public ResponseEntity<Boolean> checkPropertyAvailability(
+            @PathVariable Long propertyId,
+            @RequestParam LocalDate checkInDate,
+            @RequestParam LocalDate checkOutDate) {
+        Property property = new Property();
+        property.setId(propertyId);
+        boolean isAvailable = reservationService.isPropertyAvailable(property, checkInDate, checkOutDate);
+        return ResponseEntity.ok(isAvailable);
     }
 } 

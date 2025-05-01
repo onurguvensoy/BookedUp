@@ -4,6 +4,7 @@ import com.example.bookedUp.model.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +14,6 @@ public class UserDto {
     private String email;
     private String firstName;
     private String lastName;
-    private Role role;
+    private Set<Role> roles;
     private boolean enabled;
 } 

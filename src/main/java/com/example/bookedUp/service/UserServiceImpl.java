@@ -8,20 +8,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
     private final UserFacade userFacade;
+    private final RoleService roleService;
 
-    public UserServiceImpl(UserFacade userFacade) {
+    public UserServiceImpl(UserFacade userFacade, RoleService roleService) {
         this.userFacade = userFacade;
+        this.roleService = roleService;
     }
 
     @Override
     @Transactional
-    public UserDto createUser(String email, String password, String firstName, String lastName, Role role) {
-        User user = userFacade.createUser(email, password, firstName, lastName, role);
+    public UserDto createUser(String email, String password, String firstName, String lastName, Set<Role.RoleType> roleTypes) {
+        Set<Role> roles = roleService.getRolesByTypes(roleTypes);
+        User user = userFacade.createUser(email, password, firstName, lastName, roles);
         return convertToDto(user);
     }
 
@@ -40,8 +44,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDto> getUsersByRole(Role role) {
-        return userFacade.getUsersByRole(role).stream()
+    public List<UserDto> getUsersByRole(Role.RoleType roleType) {
+        return userFacade.getUsersByRole(roleType).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -71,7 +75,7 @@ public class UserServiceImpl implements UserService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRole(),
+                user.getRoles(),
                 user.isEnabled()
         );
     }
@@ -82,7 +86,7 @@ public class UserServiceImpl implements UserService {
                 "", // Password is not included in DTO
                 userDto.getFirstName(),
                 userDto.getLastName(),
-                userDto.getRole()
+                userDto.getRoles()
         );
         user.setId(userDto.getId());
         user.setEnabled(userDto.isEnabled());

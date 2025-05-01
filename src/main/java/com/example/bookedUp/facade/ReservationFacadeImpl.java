@@ -1,13 +1,14 @@
 package com.example.bookedUp.facade;
 
 import com.example.bookedUp.model.Reservation;
-import com.example.bookedUp.model.ReservationStatus;
+import com.example.bookedUp.model.Property;
+import com.example.bookedUp.model.Guest;
 import com.example.bookedUp.repository.ReservationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 @Service
 public class ReservationFacadeImpl implements ReservationFacade {
@@ -20,6 +21,11 @@ public class ReservationFacadeImpl implements ReservationFacade {
     @Override
     @Transactional
     public Reservation createReservation(Reservation reservation) {
+        if (!isPropertyAvailable(reservation.getProperty(), 
+                reservation.getCheckInDate(), 
+                reservation.getCheckOutDate())) {
+            throw new IllegalArgumentException("Property is not available for the selected dates");
+        }
         return reservationRepository.save(reservation);
     }
 
@@ -34,32 +40,13 @@ public class ReservationFacadeImpl implements ReservationFacade {
     }
 
     @Override
-    public List<Reservation> getReservationsByGuestId(Long guestId) {
-        return reservationRepository.findByGuestId(guestId);
+    public List<Reservation> getReservationsByProperty(Property property) {
+        return reservationRepository.findByProperty(property);
     }
 
     @Override
-    public List<Reservation> getReservationsByHostId(Long hostId) {
-        return reservationRepository.findByHostId(hostId);
-    }
-
-    @Override
-    @Transactional
-    public Reservation updateReservation(Long id, Reservation reservationDetails) {
-        return reservationRepository.findById(id)
-                .map(reservation -> {
-                    reservation.setCheckInDate(reservationDetails.getCheckInDate());
-                    reservation.setCheckOutDate(reservationDetails.getCheckOutDate());
-                    reservation.setTotalPrice(reservationDetails.getTotalPrice());
-                    return reservationRepository.save(reservation);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("Reservation not found with id: " + id));
-    }
-
-    @Override
-    @Transactional
-    public void deleteReservation(Long id) {
-        reservationRepository.deleteById(id);
+    public List<Reservation> getReservationsByGuest(Guest guest) {
+        return reservationRepository.findByGuest(guest);
     }
 
     @Override
@@ -67,9 +54,35 @@ public class ReservationFacadeImpl implements ReservationFacade {
     public Reservation updateReservationStatus(Long id, String status) {
         return reservationRepository.findById(id)
                 .map(reservation -> {
-                    reservation.setStatus(ReservationStatus.valueOf(status.toUpperCase()));
+                    reservation.setStatus(status);
                     return reservationRepository.save(reservation);
                 })
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found with id: " + id));
+    }
+
+    @Override
+    @Transactional
+    public void cancelReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found with id: " + id));
+        
+        if (!reservation.getStatus().equals("PENDING")) {
+            throw new IllegalStateException("Only pending reservations can be cancelled");
+        }
+        
+        reservation.setStatus("CANCELLED");
+        reservationRepository.save(reservation);
+    }
+
+    @Override
+    public boolean isPropertyAvailable(Property property, LocalDate checkInDate, LocalDate checkOutDate) {
+        List<Reservation> existingReservations = reservationRepository.findByProperty(property);
+        
+        return existingReservations.stream()
+                .noneMatch(reservation -> 
+                    !reservation.getStatus().equals("CANCELLED") &&
+                    !(checkOutDate.isBefore(reservation.getCheckInDate()) || 
+                      checkInDate.isAfter(reservation.getCheckOutDate()))
+                );
     }
 } 

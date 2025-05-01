@@ -2,7 +2,6 @@ package com.example.bookedUp.controller;
 
 import com.example.bookedUp.dto.UserDto;
 import com.example.bookedUp.dto.UserCreateRequest;
-import com.example.bookedUp.model.Role;
 import com.example.bookedUp.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +24,7 @@ public class UserController {
             request.getPassword(),
             request.getFirstName(),
             request.getLastName(),
-            request.getRole()
+            request.getRoles()
         );
         return ResponseEntity.ok(userDto);
     }
