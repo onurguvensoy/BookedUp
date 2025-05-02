@@ -2,39 +2,19 @@ package com.example.bookedUp.service;
 
 import com.example.bookedUp.dto.LoginRequest;
 import com.example.bookedUp.dto.LoginResponse;
-import com.example.bookedUp.dto.UserCreateRequest;
-import com.example.bookedUp.dto.UserDto;
 import com.example.bookedUp.model.User;
-import com.example.bookedUp.model.Role;
 import com.example.bookedUp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
-import java.util.Date;
-import java.util.Set;
-import java.util.UUID;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    private final UserService userService;
     private final UserRepository userRepository;
 
-    public AuthServiceImpl(UserService userService, UserRepository userRepository) {
-        this.userService = userService;
+    public AuthServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-    }
-
-    @Override
-    @Transactional
-    public UserDto register(UserCreateRequest request) {
-        return userService.createUser(
-            request.getEmail(),
-            request.getPassword(),
-            request.getFirstName(),
-            request.getLastName(),
-            request.getRoles()
-        );
     }
 
     @Override

@@ -3,21 +3,26 @@ package com.example.bookedUp.mapper;
 import com.example.bookedUp.dto.PropertyDTO;
 import com.example.bookedUp.model.*;
 import com.example.bookedUp.factory.PropertyFactory;
+import com.example.bookedUp.repository.HostRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class PropertyMapper {
     private final PropertyFactory propertyFactory;
+    private final HostRepository hostRepository;
 
-    public PropertyMapper(PropertyFactory propertyFactory) {
+    public PropertyMapper(PropertyFactory propertyFactory, HostRepository hostRepository) {
         this.propertyFactory = propertyFactory;
+        this.hostRepository = hostRepository;
     }
 
+    @Transactional
     public Property toEntity(PropertyDTO dto) {
-        Host host = new Host();
-        host.setId(dto.getHostId());
+        Host host = hostRepository.findById(dto.getHostId())
+                .orElseThrow(() -> new IllegalArgumentException("Host not found with id: " + dto.getHostId()));
 
-        switch (dto.getPropertyType().toUpperCase()) {
+        switch (dto.getPropertyType()) {
             case "APARTMENT":
                 return propertyFactory.createApartment(
                     dto.getTitle(),
@@ -76,26 +81,25 @@ public class PropertyMapper {
         dto.setBathrooms(property.getBathrooms());
         dto.setHostId(property.getHost().getId());
 
-        if (property instanceof Apartment apartment) {
+        if (property instanceof Apartment) {
+            Apartment apartment = (Apartment) property;
             dto.setPropertyType("APARTMENT");
             dto.setFloorNumber(apartment.getFloorNumber());
             dto.setHasElevator(apartment.isHasElevator());
             dto.setApartmentNumber(apartment.getApartmentNumber());
-        } else if (property instanceof Villa villa) {
+        } else if (property instanceof Villa) {
+            Villa villa = (Villa) property;
             dto.setPropertyType("VILLA");
             dto.setHasPool(villa.isHasPool());
             dto.setHasGarden(villa.isHasGarden());
             dto.setTotalLandArea(villa.getTotalLandArea());
-        } else if (property instanceof Hostel hostel) {
+        } else if (property instanceof Hostel) {
+            Hostel hostel = (Hostel) property;
             dto.setPropertyType("HOSTEL");
             dto.setTotalRooms(hostel.getTotalRooms());
             dto.setHasCommonKitchen(hostel.isHasCommonKitchen());
             dto.setHasCommonLivingRoom(hostel.isHasCommonLivingRoom());
         }
-
-        dto.setImageUrls(property.getImages().stream()
-                .map(PropertyImage::getImageUrl)
-                .toList());
 
         return dto;
     }

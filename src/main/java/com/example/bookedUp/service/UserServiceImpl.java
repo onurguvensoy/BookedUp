@@ -1,95 +1,122 @@
 package com.example.bookedUp.service;
 
 import com.example.bookedUp.dto.UserDto;
-import com.example.bookedUp.facade.UserFacade;
-import com.example.bookedUp.model.User;
+import com.example.bookedUp.dto.UserUpdateRequest;
 import com.example.bookedUp.model.Role;
+import com.example.bookedUp.model.User;
+import com.example.bookedUp.model.Host;
+import com.example.bookedUp.model.Guest;
+import com.example.bookedUp.model.Admin;
+import com.example.bookedUp.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
-    private final UserFacade userFacade;
-    private final RoleService roleService;
+    private final UserRepository userRepository;
 
-    public UserServiceImpl(UserFacade userFacade, RoleService roleService) {
-        this.userFacade = userFacade;
-        this.roleService = roleService;
+    @Autowired
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
     @Transactional
-    public UserDto createUser(String email, String password, String firstName, String lastName, Set<Role.RoleType> roleTypes) {
-        Set<Role> roles = roleService.getRolesByTypes(roleTypes);
-        User user = userFacade.createUser(email, password, firstName, lastName, roles);
+    public UserDto createUser(User user) {
+        // Save the user, which will automatically save the specific type (Host, Guest, Admin)
+        User savedUser = userRepository.save(user);
+        
+        // Verify the user was saved with the correct type
+        if (user instanceof Host) {
+            Host savedHost = (Host) savedUser;
+            if (savedHost.getId() == null) {
+                throw new RuntimeException("Failed to save host user");
+            }
+        } else if (user instanceof Guest) {
+            Guest savedGuest = (Guest) savedUser;
+            if (savedGuest.getId() == null) {
+                throw new RuntimeException("Failed to save guest user");
+            }
+        } else if (user instanceof Admin) {
+            Admin savedAdmin = (Admin) savedUser;
+            if (savedAdmin.getId() == null) {
+                throw new RuntimeException("Failed to save admin user");
+            }
+        }
+        
+        return convertToDto(savedUser);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
         return convertToDto(user);
     }
 
     @Override
-    public UserDto getUserById(Long id) {
-        return userFacade.getUserById(id)
-                .map(this::convertToDto)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getAllUsers() {
-        return userFacade.getAllUsers().stream()
+        return userRepository.findAll().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getUsersByRole(Role.RoleType roleType) {
-        return userFacade.getUsersByRole(roleType).stream()
+        return userRepository.findByRoles_Name(roleType).stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public UserDto updateUser(Long id, UserDto userDto) {
-        User user = convertToEntity(userDto);
-        User updatedUser = userFacade.updateUser(id, user);
+    public UserDto updateUser(Long id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+
+        User updatedUser = userRepository.save(user);
         return convertToDto(updatedUser);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userFacade.deleteUser(id);
+        if (!userRepository.existsById(id)) {
+            throw new IllegalArgumentException("User not found with id: " + id);
+        }
+        userRepository.deleteById(id);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return userFacade.existsByEmail(email);
+        return userRepository.existsByEmail(email);
     }
 
     private UserDto convertToDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRoles(),
-                user.isEnabled()
-        );
-    }
-
-    private User convertToEntity(UserDto userDto) {
-        User user = userFacade.createUser(
-                userDto.getEmail(),
-                "", // Password is not included in DTO
-                userDto.getFirstName(),
-                userDto.getLastName(),
-                userDto.getRoles()
-        );
-        user.setId(userDto.getId());
-        user.setEnabled(userDto.isEnabled());
-        return user;
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setRoles(user.getRoles());
+        dto.setEnabled(user.isEnabled());
+        return dto;
     }
 } 

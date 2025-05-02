@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,10 +15,12 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "admins")
+@DiscriminatorValue("ADMIN")
 @PrimaryKeyJoinColumn(name = "id")
 public class Admin extends User {
     @Column(name = "phone_number")
-    private String phoneNumber;
+    @Builder.Default
+    private String phoneNumber = "";
 
     @PrePersist
     @Override

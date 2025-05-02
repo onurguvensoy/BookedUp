@@ -20,7 +20,10 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public Role getOrCreateRole(Role.RoleType roleType) {
         return roleRepository.findByName(roleType)
-                .orElseGet(() -> roleRepository.save(new Role(roleType)));
+                .orElseGet(() -> {
+                    Role role = new Role(roleType);
+                    return roleRepository.save(role);
+                });
     }
 
     @Override

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "hosts")
+@DiscriminatorValue("HOST")
 @PrimaryKeyJoinColumn(name = "id")
 public class Host extends User {
     @Column(name = "phone_number")
@@ -31,6 +32,7 @@ public class Host extends User {
     private String address;
 
     @Column(name = "is_available")
+    @Builder.Default
     private boolean available = true;
 
     @OneToMany(mappedBy = "host", cascade = CascadeType.ALL, orphanRemoval = true)

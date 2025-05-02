@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.Builder;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +51,6 @@ public class Property {
     private Host host;
 
     @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reservation> reservations;
-
-    @OneToMany(mappedBy = "property", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PropertyImage> images;
+    @Builder.Default
+    private List<Reservation> reservations = new ArrayList<>();
 } 

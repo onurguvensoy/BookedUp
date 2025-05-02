@@ -8,6 +8,8 @@ import lombok.experimental.SuperBuilder;
 import lombok.Builder;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Data
@@ -15,15 +17,19 @@ import java.util.Set;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "guests")
+@DiscriminatorValue("GUEST")
 @PrimaryKeyJoinColumn(name = "id")
 public class Guest extends User {
     @Column(name = "phone_number")
     @Builder.Default
     private String phoneNumber = "";
 
-    @Column(name = "default_address")
+    @Column(name = "address")
+    private String address;
+
+    @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private String defaultAddress = "";
+    private List<Reservation> reservations = new ArrayList<>();
 
     @PrePersist
     @Override

@@ -1,7 +1,8 @@
 package com.example.bookedUp.facade;
 
-import com.example.bookedUp.model.*;
-import com.example.bookedUp.repository.PropertyRepository;
+import com.example.bookedUp.model.Property;
+import com.example.bookedUp.model.Host;
+import com.example.bookedUp.service.PropertyService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,69 +11,51 @@ import java.util.Optional;
 
 @Service
 public class PropertyFacadeImpl implements PropertyFacade {
-    private final PropertyRepository propertyRepository;
+    private final PropertyService propertyService;
 
-    public PropertyFacadeImpl(PropertyRepository propertyRepository) {
-        this.propertyRepository = propertyRepository;
+    public PropertyFacadeImpl(PropertyService propertyService) {
+        this.propertyService = propertyService;
     }
 
     @Override
     @Transactional
     public Property createProperty(Property property) {
-        return propertyRepository.save(property);
+        return propertyService.createProperty(property);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Property> getPropertyById(Long id) {
-        return propertyRepository.findById(id);
+        return propertyService.getPropertyById(id);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Property> getAllProperties() {
-        return propertyRepository.findAll();
+        return propertyService.getAllProperties();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Property> getPropertiesByHost(Host host) {
-        return propertyRepository.findByHost(host);
+        return propertyService.getPropertiesByHost(host);
     }
 
     @Override
     @Transactional
     public Property updateProperty(Long id, Property propertyDetails) {
-        return propertyRepository.findById(id)
-                .map(property -> {
-                    property.setTitle(propertyDetails.getTitle());
-                    property.setDescription(propertyDetails.getDescription());
-                    property.setAddress(propertyDetails.getAddress());
-                    property.setPricePerNight(propertyDetails.getPricePerNight());
-                    property.setMaxGuests(propertyDetails.getMaxGuests());
-                    property.setBedrooms(propertyDetails.getBedrooms());
-                    property.setBathrooms(propertyDetails.getBathrooms());
-                    property.setAvailable(propertyDetails.isAvailable());
-                    return propertyRepository.save(property);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("Property not found with id: " + id));
+        return propertyService.updateProperty(id, propertyDetails);
     }
 
     @Override
     @Transactional
     public void deleteProperty(Long id) {
-        propertyRepository.deleteById(id);
+        propertyService.deleteProperty(id);
     }
 
     @Override
-    @Transactional
-    public void addImageToProperty(Long propertyId, String imageUrl) {
-        Property property = propertyRepository.findById(propertyId)
-                .orElseThrow(() -> new IllegalArgumentException("Property not found with id: " + propertyId));
-
-        PropertyImage image = PropertyImage.builder()
-                .imageUrl(imageUrl)
-                .property(property)
-                .build();
-
-        property.getImages().add(image);
-        propertyRepository.save(property);
+    @Transactional(readOnly = true)
+    public List<Property> searchProperties(String location, Integer minPrice, Integer maxPrice, Integer guests) {
+        return propertyService.searchProperties(location, minPrice, maxPrice, guests);
     }
 } 

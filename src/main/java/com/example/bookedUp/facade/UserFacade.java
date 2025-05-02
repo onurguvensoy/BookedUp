@@ -1,17 +1,17 @@
 package com.example.bookedUp.facade;
 
-import com.example.bookedUp.model.User;
+import com.example.bookedUp.dto.UserDto;
+import com.example.bookedUp.dto.UserCreateRequest;
+import com.example.bookedUp.dto.UserUpdateRequest;
 import com.example.bookedUp.model.Role;
 import java.util.List;
-import java.util.Set;
-import java.util.Optional;
 
 public interface UserFacade {
-    User createUser(String email, String password, String firstName, String lastName, Set<Role> roles);
-    Optional<User> getUserById(Long id);
-    List<User> getAllUsers();
-    List<User> getUsersByRole(Role.RoleType roleType);
-    User updateUser(Long id, User userDetails);
+    UserDto createUser(UserCreateRequest request);
+    UserDto getUserById(Long id);
+    List<UserDto> getAllUsers();
+    List<UserDto> getUsersByRole(Role.RoleType roleType);
+    UserDto updateUser(Long id, UserUpdateRequest request);
     void deleteUser(Long id);
     boolean existsByEmail(String email);
 } 

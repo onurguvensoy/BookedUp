@@ -12,6 +12,5 @@ public interface PropertyService {
     List<Property> getPropertiesByHost(Host host);
     Property updateProperty(Long id, Property propertyDetails);
     void deleteProperty(Long id);
-    void addImageToProperty(Long propertyId, String imageUrl);
     List<Property> searchProperties(String location, Integer minPrice, Integer maxPrice, Integer guests);
 } 

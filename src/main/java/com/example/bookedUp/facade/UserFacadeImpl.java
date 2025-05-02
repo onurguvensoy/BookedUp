@@ -1,73 +1,98 @@
 package com.example.bookedUp.facade;
 
-import com.example.bookedUp.model.User;
+import com.example.bookedUp.dto.UserDto;
+import com.example.bookedUp.dto.UserCreateRequest;
+import com.example.bookedUp.dto.UserUpdateRequest;
 import com.example.bookedUp.model.Role;
+import com.example.bookedUp.model.User;
+import com.example.bookedUp.service.RoleService;
+import com.example.bookedUp.service.UserService;
 import com.example.bookedUp.factory.UserFactory;
-import com.example.bookedUp.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserFacadeImpl implements UserFacade {
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final RoleService roleService;
     private final UserFactory userFactory;
 
-    public UserFacadeImpl(UserRepository userRepository, UserFactory userFactory) {
-        this.userRepository = userRepository;
+    public UserFacadeImpl(UserService userService, RoleService roleService, UserFactory userFactory) {
+        this.userService = userService;
+        this.roleService = roleService;
         this.userFactory = userFactory;
     }
 
     @Override
     @Transactional
-    public User createUser(String email, String password, String firstName, String lastName, Set<Role> roles) {
-        if (existsByEmail(email)) {
+    public UserDto createUser(UserCreateRequest request) {
+        if (userService.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
-        User user = userFactory.createUser(email, password, firstName, lastName, roles);
-        return userRepository.save(user);
+
+        // Create roles first
+        Set<Role> roles = roleService.getRolesByTypes(request.getRoles());
+        
+        // Create the appropriate user type using the factory
+        User user = userFactory.createUser(
+            request.getEmail(),
+            request.getPassword(),
+            request.getFirstName(),
+            request.getLastName(),
+            roles
+        );
+        
+        // Save the user
+        UserDto savedUser = userService.createUser(user);
+        
+        // Verify the user was saved
+        if (savedUser == null) {
+            throw new RuntimeException("Failed to save user");
+        }
+        
+        return savedUser;
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    @Transactional(readOnly = true)
+    public UserDto getUserById(Long id) {
+        return userService.getUserById(id);
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
     @Override
-    public List<User> getUsersByRole(Role.RoleType roleType) {
-        return userRepository.findByRoles_Name(roleType);
+    @Transactional(readOnly = true)
+    public List<UserDto> getUsersByRole(Role.RoleType roleType) {
+        return userService.getUsersByRole(roleType);
     }
 
     @Override
     @Transactional
-    public User updateUser(Long id, User userDetails) {
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setEmail(userDetails.getEmail());
-                    user.setFirstName(userDetails.getFirstName());
-                    user.setLastName(userDetails.getLastName());
-                    user.setRoles(userDetails.getRoles());
-                    return userRepository.save(user);
-                })
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+    public UserDto updateUser(Long id, UserUpdateRequest request) {
+        if (request.getRoles() != null) {
+            Set<Role> roles = roleService.getRolesByTypes(request.getRoles());
+            request.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
+        }
+        return userService.updateUser(id, request);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        userService.deleteUser(id);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+        return userService.existsByEmail(email);
     }
 } 

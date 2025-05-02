@@ -3,20 +3,18 @@ package com.example.bookedUp.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "roles")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@Table(name = "roles")
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private RoleType name;
 
     public Role(RoleType name) {
@@ -24,8 +22,6 @@ public class Role {
     }
 
     public enum RoleType {
-        GUEST,
-        HOST,
-        ADMIN
+        GUEST, HOST, ADMIN
     }
 } 
